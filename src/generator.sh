@@ -31,6 +31,9 @@ for IMAGE in $LIST_IMAGES; do
 	# Push image
 	echo "[INFO] Pushing $OS_NAME:$OS_VERSION ..."
 	docker push $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
+
+	# Delete the local image (so that the disk doesn't fill up)
+	docker rmi $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
 done
 
 # Clean up data
