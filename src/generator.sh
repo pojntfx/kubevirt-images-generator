@@ -31,8 +31,6 @@ for IMAGE in $LIST_IMAGES; do
 	# Push image
 	echo "[INFO] Pushing $OS_NAME:$OS_VERSION ..."
 	docker push $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
-
-	docker rmi $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
 done
 
 # Clean up data
