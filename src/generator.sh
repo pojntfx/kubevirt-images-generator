@@ -1,25 +1,26 @@
 #!/bin/bash
 
-for IMAGE in $LIST_IMAGES
-do
+# Process all specified images
+for IMAGE in $LIST_IMAGES; do
+	# Setup env
 	OS_NAME=$(echo $IMAGE | cut -d";" -f1)
 	OS_VERSION=$(echo $IMAGE | cut -d";" -f2)
 	IMAGE_URL=$(echo $IMAGE | cut -d";" -f3)
 	URL_LIST=($(echo "$IMAGE_URL" | tr "/" " "))
-	FILE_NAME="${URL_LIST[${#URL_LIST[@]}-1]}"
-	NAME_IMAGE="$OS_NAME-container-disk"
+	FILE_NAME="${URL_LIST[${#URL_LIST[@]} - 1]}"
+	NAME_IMAGE="$OS_NAME-kubevirt-container-disk"
 	FILE_LIST=($(echo "$FILE_NAME" | tr "." " "))
 	IMAGE_NAME=$(echo $FILE_NAME | cut -d"." -f1)
-	IMAGE_EXTENSION="${FILE_LIST[${#FILE_LIST[@]}-1]}"
+	IMAGE_EXTENSION="${FILE_LIST[${#FILE_LIST[@]} - 1]}"
 
-	echo "OS:$OS_NAME VERSION:$OS_VERSION IMAGE:$IMAGE_URL"
+	# Log info
+	echo "[DATA] OS: $OS_NAME"
+	echo "[DATA] VERSION: $OS_VERSION"
+	echo "[DATA] IMAGE: $IMAGE_URL"
 
-	#if [ ! -f custom/$FILE_NAME ]; then
-	#	curl -g -L $IMAGE_URL > custom/$FILE_NAME
-	#fi
-
-	echo "Build $OS_NAME:$OS_VERSION"
-	docker build -f base/Dockerfile -t $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION \
+	# Build image
+	echo "[INFO] Building $OS_NAME:$OS_VERSION ..."
+	docker build -f Dockerfile -t $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION \
 		--build-arg OS_NAME="$OS_NAME" \
 		--build-arg OS_VERSION="$OS_VERSION" \
 		--build-arg IMAGE_URL="$IMAGE_URL" \
@@ -27,14 +28,15 @@ do
 		--build-arg IMAGE_NAME="$IMAGE_NAME" \
 		--build-arg IMAGE_EXTENSION="$IMAGE_EXTENSION" .
 
-	echo "Push $OS_NAME:$OS_VERSION"
+	# Push image
+	echo "[INFO] Pushing $OS_NAME:$OS_VERSION ..."
 	docker push $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
 
-	#rm -f custom/$FILE_NAME
 	docker rmi $NAME_REGISTRY/$NAME_IMAGE:$OS_VERSION
 done
 
-echo "Clean..."
+# Clean up data
+echo "[INFO] Cleaning ..."
 docker stop $(docker ps -a -q)
 docker rm $(docker ps -a -q)
 docker rmi $(docker images | grep "^<none>" | awk '{ print $3 }')
